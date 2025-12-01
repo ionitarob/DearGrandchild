@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pages/memories_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/recording_page.dart'; // <--- IMPORTANTE: Importamos la nueva página
 
 void main() {
   runApp(const MyApp());
@@ -15,15 +16,17 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'DearGrandchild',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: warmSeed),
-        scaffoldBackgroundColor: const Color(0xFFF7EFE6), // soft warm background
+        scaffoldBackgroundColor: const Color(0xFFF7EFE6),
         useMaterial3: true,
       ),
       routes: {
         '/': (context) => const HomeScreen(),
         '/memories': (context) => const MemoriesPage(),
         '/settings': (context) => const SettingsPage(),
+        '/recording': (context) => const RecordingPage(),
       },
       initialRoute: '/',
     );
@@ -38,149 +41,153 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<String> _themes = [
-    'La meva infància',
-    'Els meus amics',
-    'La meva escola',
-    'Un viatge especial',
-    'Tema lliure',
-  ];
-
-  int _selectedThemeIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Top greeting and small description
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Bienvenido, Manolo', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-                  SizedBox(height: 6),
-                  Text('Pulsa HABLAR para iniciar. Elige un tema si quieres centrar la conversación.', style: TextStyle(color: Colors.black54)),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 1. Cabecera: Saludo y textos grandes
+              const SizedBox(height: 20),
+              const Text(
+                'Bienvenido, Manolo',
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                  height: 1.1,
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              const Text(
+                'Pulsa un botón para comenzar.',
+                style: TextStyle(
+                  fontSize: 32,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                  height: 1.3,
+                ),
+              ),
 
-            // Horizontal list of selectable themes
-            SizedBox(
-              height: 60,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: _themes.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final selected = index == _selectedThemeIndex;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedThemeIndex = index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: selected ? Colors.deepOrangeAccent.shade100 : const Color(0xFFF7EFE6),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: selected ? Colors.deepOrangeAccent : Colors.transparent, width: 1.5),
-                        boxShadow: selected
-                            ? [BoxShadow(color: Colors.deepOrangeAccent.withOpacity(0.15), blurRadius: 6, offset: const Offset(0, 3))]
-                            : null,
+              // Este Spacer empuja todo el bloque de botones hacia el centro vertical
+              const Spacer(),
+
+              // 2. Botón Principal (HABLAR)
+              Center(
+                child: Semantics(
+                  button: true,
+                  label: 'Grabar nueva memoria',
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // <--- CAMBIO AQUÍ: Navegar a la página de grabación
+                      Navigator.of(context).pushNamed('/recording');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepOrangeAccent.shade200,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 140),
+                      padding: const EdgeInsets.all(24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
                       ),
-                      child: Center(
-                        child: Text(
-                          _themes[index],
-                          style: TextStyle(fontSize: 16, fontWeight: selected ? FontWeight.w600 : FontWeight.w500, color: Colors.black87),
+                      elevation: 8,
+                      shadowColor: Colors.deepOrange.withOpacity(0.5),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.mic_rounded, size: 48),
+                        SizedBox(height: 8),
+                        Text(
+                          'HABLAR',
+                          style: TextStyle(
+                            fontSize: 40, 
+                            fontWeight: FontWeight.w800, 
+                            letterSpacing: 1.5
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ),
-
-            // Spacer
-            const Expanded(child: SizedBox()),
-
-            // Main action button centered
-            Center(
-              child: Semantics(
-                button: true,
-                label: 'HABLAR',
-                child: ElevatedButton(
-                  onPressed: () {
-                    final theme = _themes[_selectedThemeIndex];
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Iniciando conversación sobre: $theme')),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepOrangeAccent.shade200,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(340, 120),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 6,
-                  ),
-                  child: const Text(
-                    'HABLAR',
-                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, letterSpacing: 1.2),
                   ),
                 ),
               ),
-            ),
 
-            // Spacer between main button and bottom controls
-            const SizedBox(height: 36),
+              // Separación fija en lugar de Spacer, para mantenerlos juntos
+              const SizedBox(height: 24),
 
-            // Bottom controls: Memories and Settings
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // 3. Botones inferiores (Ahora pegados debajo del principal)
+              Row(
                 children: [
                   Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/memories');
-                      },
-                      icon: const Icon(Icons.memory_outlined, color: Colors.black54),
-                      label: const Text('Mis memorias', style: TextStyle(color: Colors.black87)),
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFFAF0E6),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        alignment: Alignment.centerLeft,
-                      ),
+                    child: _BigSecondaryButton(
+                      label: 'VER MIS MEMORIAS',
+                      icon: Icons.auto_stories_rounded,
+                      onTap: () => Navigator.of(context).pushNamed('/memories'),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 120,
-                    child: TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/settings');
-                      },
-                      icon: const Icon(Icons.settings_outlined, color: Colors.black54),
-                      label: const Text('Ajustes', style: TextStyle(color: Colors.black87)),
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFFAF0E6),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _BigSecondaryButton(
+                      label: 'MÁS OPCIONES',
+                      icon: Icons.settings_rounded,
+                      onTap: () => Navigator.of(context).pushNamed('/settings'),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+
+              // Este Spacer final equilibra la pantalla por abajo
+              const Spacer(),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+// Widget auxiliar para los botones secundarios grandes
+class _BigSecondaryButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _BigSecondaryButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepOrange.shade100, // Color suave
+        foregroundColor: Colors.brown.shade900, // Texto oscuro
+        minimumSize: const Size(0, 90), // Altura grande
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 32),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24, 
+              fontWeight: FontWeight.w700
+            ),
+          ),
+        ],
       ),
     );
   }
